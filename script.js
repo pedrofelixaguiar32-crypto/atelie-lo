@@ -1,3 +1,4 @@
+
 const menuToggle = document.querySelector(".menu-toggle");
 const navigation = document.querySelector(".main-navigation");
 const currentYear = document.querySelector("#current-year");
@@ -8,9 +9,17 @@ const cartClose = document.querySelector(".cart-close");
 const cartItemsContainer = document.querySelector(".cart-items");
 const cartEmpty = document.querySelector(".cart-empty");
 const cartSummary = document.querySelector(".cart-summary");
+const checkoutForm = document.querySelector(".checkout-form");
 const cartCount = document.querySelector(".cart-count");
 const drawerCount = document.querySelector(".drawer-count");
 const toast = document.querySelector(".toast-message");
+
+const emailJsConfig = {
+  serviceId: "service_2qs4hen",
+  templateId: "template_229lm6c",
+  publicKey: "VEHULGQl4JlJz2yV_",
+};
+const whatsappNumber = "5511969765107";
 
 const products = {
   "pano-aurora": {
@@ -41,6 +50,15 @@ const products = {
 
 const formatPrice = (cents) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
+
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
 
 let cart = {};
 let cartStorageIssue = false;
@@ -150,17 +168,81 @@ function renderCart() {
   cartEmpty.classList.toggle("is-visible", isEmpty);
   cartSummary.hidden = isEmpty;
   cartSummary.querySelector(".cart-total strong").textContent = formatPrice(total);
-
-  const checkoutLink = cartSummary.querySelector(".checkout-link");
-  if (checkoutLink) {
-    const orderLines = Object.entries(cart)
-      .filter(([id]) => products[id])
-      .map(([id, itemQuantity]) => `${itemQuantity}x ${products[id].name} — ${formatPrice(products[id].price * itemQuantity)}`);
-    const subject = encodeURIComponent("Pedido Ateliê Lo");
-    const body = encodeURIComponent(`Olá! Gostaria de consultar este pedido:\n\n${orderLines.join("\n")}\n\nSubtotal: ${formatPrice(total)}\n\nPor favor, confirmem disponibilidade, frete e prazo.`);
-    checkoutLink.href = `mailto:contato@atelielo.com.br?subject=${subject}&body=${body}`;
-  }
 }
+
+checkoutForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!checkoutForm.reportValidity()) return;
+
+  if (Object.values(emailJsConfig).some((value) => value.startsWith("YOUR_"))) {
+    showToast("O envio de e-mail ainda não foi configurado.");
+    return;
+  }
+
+  if (!window.emailjs) {
+    showToast("O serviço de e-mail não está disponível. Tente novamente mais tarde.");
+    return;
+  }
+
+  const formData = new FormData(checkoutForm);
+  const customerName = String(formData.get("customerName") || "").trim();
+  const customerPhone = String(formData.get("customerPhone") || "").trim();
+  const orderLines = Object.entries(cart)
+    .filter(([id]) => products[id])
+    .map(([id, itemQuantity]) => {
+      const product = products[id];
+      return `${product.name} | Quantidade: ${itemQuantity} | Preço unitário: ${formatPrice(product.price)} | Total do item: ${formatPrice(product.price * itemQuantity)}`;
+    });
+  const total = Object.entries(cart)
+    .reduce((sum, [id, itemQuantity]) => sum + (products[id] ? products[id].price * itemQuantity : 0), 0);
+  if (orderLines.length === 0) {
+    showToast("Adicione ao menos um produto antes de finalizar o pedido.");
+    return;
+  }
+
+  const orderMessage = [
+    "Olá! Gostaria de solicitar este pedido no Ateliê Lo:",
+    "",
+    `Nome: ${customerName}`,
+    `Telefone: ${customerPhone}`,
+    "",
+    "Itens do pedido:",
+    ...orderLines,
+    "",
+    `Total: ${formatPrice(total)}`,
+    "",
+    "Por favor, confirmem disponibilidade, frete e prazo.",
+  ].join("\n");
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
+  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+
+  const submitButton = checkoutForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  showToast("Enviando seu pedido...");
+
+  window.emailjs
+    .send(
+      emailJsConfig.serviceId,
+      emailJsConfig.templateId,
+      {
+        customer_name: escapeHtml(customerName),
+        customer_phone: escapeHtml(customerPhone),
+        order_items: orderLines.join("\n"),
+        order_total: formatPrice(total),
+      },
+      { publicKey: emailJsConfig.publicKey },
+    )
+    .then(() => {
+      showToast("Pedido Solicitado. Confirme o envio no WhatsApp.");
+    })
+    .catch((error) => {
+      console.error("Falha ao enviar o pedido pelo EmailJS.", error);
+      showToast("Não foi possível enviar o pedido. Tente novamente.");
+    })
+    .finally(() => {
+      if (submitButton) submitButton.disabled = false;
+    });
+});
 
 function openCart() {
   if (!cartDrawer || !cartOverlay) return;

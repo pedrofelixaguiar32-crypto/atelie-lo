@@ -281,7 +281,11 @@ h1 em, h2 em { color: var(--terracotta); font-weight: 500; }
 .cart-summary[hidden] { display: none; }
 .cart-total { display: flex; justify-content: space-between; color: var(--brown); font-size: 12px; }
 .cart-summary > p { margin: 5px 0 14px; color: var(--muted); font-size: 9px; }
-.checkout-link { width: 100%; }
+.checkout-form { display: grid; gap: 7px; }
+.checkout-form label { color: var(--brown); font-size: 10px; font-weight: 600; }
+.checkout-form input { width: 100%; min-height: 38px; margin-bottom: 5px; padding: 8px 10px; border: 1px solid #e7ddd3; border-radius: 3px; background: white; color: var(--brown-deep); font: inherit; }
+.checkout-link { width: 100%; cursor: pointer; }
+.checkout-link:disabled { cursor: wait; opacity: .7; }
 .toast-message {
   position: fixed; z-index: 12; right: 24px; bottom: 24px; padding: 12px 17px;
   background: var(--brown-deep); color: white; font-size: 11px;

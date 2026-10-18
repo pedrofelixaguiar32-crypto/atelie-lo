@@ -8,7 +8,7 @@
       content="Peças de crochê feitas à mão para deixar a sua casa ainda mais especial. Conheça o Ateliê Lo."
     />
     <meta name="theme-color" content="#f7f3ed" />
-    <title>Ateliê Lo — Feito à mão para o seu lar</title>
+    <title>atelie.lo — Feito à mão para o seu lar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,6 +16,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body>
@@ -257,7 +258,7 @@
         </div>
         <div class="footer-column">
           <h2>Fale com a gente</h2>
-          <a href="mailto:contato@atelielo.com.br">contato@atelielo.com.br</a>
+          <a href="mailto:atelielo2009@outlook.com">atelielo2009@outlook.com</a>
           <a href="http://wa.me/5511969765107" target="_blank" rel="noreferrer">WhatsApp <span aria-hidden="true">↗</span></a>
           <a href="https://www.instagram.com/atelie.lo_/" target="_blank" rel="noreferrer">Instagram <span aria-hidden="true">↗</span></a>
           <a href="https://www.pinterest.com/" target="_blank" rel="noreferrer">Pinterest <span aria-hidden="true">↗</span></a>
@@ -294,7 +295,13 @@
       <div class="cart-summary" hidden>
         <div class="cart-total"><span>Subtotal</span><strong>R$ 0,00</strong></div>
         <p>Frete e prazo podem ser combinados no contato com a loja.</p>
-        <a class="button button-primary checkout-link" href="mailto:contato@atelielo.com.br?subject=Pedido%20Ateli%C3%AA%20Lo">Solicitar pedido por e-mail <span aria-hidden="true">↗</span></a>
+        <form class="checkout-form">
+          <label for="checkout-name">Seu nome</label>
+          <input id="checkout-name" name="customerName" type="text" autocomplete="name" required />
+          <label for="checkout-phone">Seu telefone</label>
+          <input id="checkout-phone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" required />
+          <button class="button button-primary checkout-link" type="submit">Solicitar pedido por e-mail <span aria-hidden="true">↗</span></button>
+        </form>
       </div>
     </aside>
     <div class="toast-message" role="status" aria-live="polite"></div>
