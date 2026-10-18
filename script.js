@@ -14,11 +14,6 @@ const cartCount = document.querySelector(".cart-count");
 const drawerCount = document.querySelector(".drawer-count");
 const toast = document.querySelector(".toast-message");
 
-const emailJsConfig = {
-  serviceId: "service_2qs4hen",
-  templateId: "template_229lm6c",
-  publicKey: "VEHULGQl4JlJz2yV_",
-};
 const whatsappNumber = "5511969765107";
 
 const products = {
@@ -50,15 +45,6 @@ const products = {
 
 const formatPrice = (cents) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
-
-const escapeHtml = (value) =>
-  String(value).replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;",
-  })[character]);
 
 let cart = {};
 let cartStorageIssue = false;
@@ -174,16 +160,6 @@ checkoutForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!checkoutForm.reportValidity()) return;
 
-  if (Object.values(emailJsConfig).some((value) => value.startsWith("YOUR_"))) {
-    showToast("O envio de e-mail ainda não foi configurado.");
-    return;
-  }
-
-  if (!window.emailjs) {
-    showToast("O serviço de e-mail não está disponível. Tente novamente mais tarde.");
-    return;
-  }
-
   const formData = new FormData(checkoutForm);
   const customerName = String(formData.get("customerName") || "").trim();
   const customerPhone = String(formData.get("customerPhone") || "").trim();
@@ -214,34 +190,12 @@ checkoutForm?.addEventListener("submit", (event) => {
     "Por favor, confirmem disponibilidade, frete e prazo.",
   ].join("\n");
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
-  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-
-  const submitButton = checkoutForm.querySelector('button[type="submit"]');
-  if (submitButton) submitButton.disabled = true;
-  showToast("Enviando seu pedido...");
-
-  window.emailjs
-    .send(
-      emailJsConfig.serviceId,
-      emailJsConfig.templateId,
-      {
-        customer_name: escapeHtml(customerName),
-        customer_phone: escapeHtml(customerPhone),
-        order_items: orderLines.join("\n"),
-        order_total: formatPrice(total),
-      },
-      { publicKey: emailJsConfig.publicKey },
-    )
-    .then(() => {
-      showToast("Pedido Solicitado. Confirme o envio no WhatsApp.");
-    })
-    .catch((error) => {
-      console.error("Falha ao enviar o pedido pelo EmailJS.", error);
-      showToast("Não foi possível enviar o pedido. Tente novamente.");
-    })
-    .finally(() => {
-      if (submitButton) submitButton.disabled = false;
-    });
+  const whatsappWindow = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  if (!whatsappWindow) {
+    showToast("Permita pop-ups para abrir o WhatsApp e concluir seu pedido.");
+    return;
+  }
+  showToast("Pedido Solicitado. Confirme o envio no WhatsApp.");
 });
 
 function openCart() {
